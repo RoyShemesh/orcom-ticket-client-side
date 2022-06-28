@@ -2,19 +2,34 @@ import axios from "axios";
 import { useState } from "react";
 import Input from "./Input";
 import Textarea from "./Textarea";
-
+const APIUrl = "https://www.orcom-it.manavate.com/api/tickets/create";
 export default function Form() {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const fetchApi = () => {
-    axios.post("https://orcom-it.manavate.com/tickets", {
-      subject,
-      description,
-      name,
-      email,
-    });
+  const fetchApi = async () => {
+    try {
+      console.log(process.env.REACT_APP_API_KEY);
+      await axios.post(
+        APIUrl,
+        {
+          subject,
+          description,
+          name,
+          email,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            APIKey: process.env.REACT_APP_API_KEY,
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div className="w-full max-w-xs">
@@ -30,7 +45,7 @@ export default function Form() {
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="button"
-            onClick={() => fetchApi()}
+            onClick={async () => await fetchApi()}
           >
             Send
           </button>
