@@ -2,31 +2,42 @@ import axios from "axios";
 import { useState } from "react";
 import Input from "./Input";
 import Textarea from "./Textarea";
-const APIUrl = "https://www.orcom-it.manavate.com/api/tickets/create";
+import { Notyf } from "notyf";
+import validator from "validator";
+import "notyf/notyf.min.css"; // for React, Vue and Svelte
+
+const APIUrl = "http://localhost:8080";
 export default function Form() {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const checkData = () => {
+    const notyf = new Notyf();
+    if (!validator.isEmail(email)) {
+      notyf.error("Email not valid");
+      return false;
+    }
+    if (!name || !description || !subject) {
+      notyf.error("Please fill all fields");
+      return false;
+    }
+    return true;
+  };
   const fetchApi = async () => {
     try {
-      console.log(process.env.REACT_APP_API_KEY);
-      await axios.post(
-        APIUrl,
-        {
-          subject,
-          description,
-          name,
-          email,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            APIKey: process.env.REACT_APP_API_KEY,
-          },
-        }
-      );
+      if (!checkData()) throw new Error();
+      await axios.post(`${APIUrl}/addTicket`, {
+        subject,
+        description,
+        name,
+        email,
+      });
+      const notyf = new Notyf();
+      notyf.success("Your request has been accepted");
+      setName("");
+      setDescription("");
+      setSubject("");
     } catch (error) {
       console.log(error);
     }
@@ -37,10 +48,14 @@ export default function Form() {
         <label className="flex justify-center block text-gray-700 text-lg font-bold mb-2">
           Form
         </label>
-        <Input placeholder={"subject"} setState={setSubject} />
-        <Textarea placeholder={"description"} setState={setDescription} />
-        <Input placeholder={"name"} setState={setName} />
-        <Input placeholder={"email"} setState={setEmail} />
+        <Input placeholder={"subject"} setState={setSubject} state={subject} />
+        <Textarea
+          placeholder={"description"}
+          setState={setDescription}
+          state={description}
+        />
+        <Input placeholder={"name"} setState={setName} state={name} />
+        <Input placeholder={"email"} setState={setEmail} state={email} />
         <div className="flex justify-center items-center">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
